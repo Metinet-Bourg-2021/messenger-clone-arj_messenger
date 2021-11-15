@@ -6,8 +6,9 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const mongoose = require('mongoose');
 const userCtr = require('./controllers/UserController')
-const convCtr = require('./controllers/ConversationController')
 const messageCtr = require('./controllers/MessageController')
+const conversationCtr = require('./controllers/ConversationController')
+
 
 const io = new Server(server, { cors: { origin: "*" } });
 
@@ -31,11 +32,11 @@ io.on("connection", socket => {
     
     socket.on("@getUsers", userCtr.getUsers);
 
-    socket.on("@getOrCreateOneToOneConversation", ({token, username}, callback) => { callback({code:"SUCCESS", data:{}});  });
+    socket.on("@getOrCreateOneToOneConversation", conversationCtr.getOrCreateOneToOneConversation);
 
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
 
-    socket.on("@getConversations", convCtr.getConversations);
+    socket.on("@getConversations", conversationCtr.getConversations);
     
     socket.on("@postMessage", messageCtr.postMessage);
 

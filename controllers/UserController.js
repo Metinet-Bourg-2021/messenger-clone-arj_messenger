@@ -12,7 +12,7 @@ async function authenticate({username, password}, callback)
         }else{
             let isValid = await bcrypt.compare(password,userFind.password)
             if(isValid) return callback({code:"SUCCESS", data:{"username":userFind.username,"token":userFind.token,"picture_url":userFind.picture_url}});
-            
+
             else return callback({code:"NOT_AUTHENTICATED", data:{}});
         }
     }catch (err){
@@ -53,7 +53,7 @@ async function getUsers({token}, callback)
             }else{
                 return callback({code:"NOT_FOUND_USER", data:{}});
             }
-        
+          
         }else{
             return callback({code:"NOT_AUTHENTICATED", data:{}});
         }
@@ -62,8 +62,6 @@ async function getUsers({token}, callback)
         console.log(err)
     }
 }
-
-
 
 
 module.exports = {authenticate: authenticate,getUsers:getUsers};

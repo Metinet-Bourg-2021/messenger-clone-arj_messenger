@@ -4,9 +4,7 @@ const Conversation = require('./../models/Conversation');
 
 async function getOrCreateOneToOneConversation({token, username}, callback)
 {
-    
 
-    // return callback({code:"SUCCESS", data:{}});
 }
 
 
@@ -40,3 +38,4 @@ async function getConversations({token, username}, callback)
 
 
 module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations};
+
