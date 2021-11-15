@@ -182,26 +182,22 @@ async function createManyToManyConversation({token, usernames}, callback)
 {
     try{
         const userFind = await User.findOne({token:token})
+        usernames.push(userFind.username)
         if(userFind)
         {
             let conversation = new Conversation({
                 id: 1,
                 type: "many_to_many",
-                participants: usernames,
-                messages: [{}],
-                title: "title",
-                theme: "theme",
+                participants:usernames,
                 updated_at: Date.now(),
-                seen: {},
-                typing: {}
             });
 
 
-            console.log(conversation);
 
 
             const conversationSave = await conversation.save(conversation);
-        
+            console.log(conversationSave);
+
             return callback({code:"SUCCESS", data:{
                 conversation: {
                     id: conversationSave.id,
