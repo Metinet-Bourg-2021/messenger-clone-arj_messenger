@@ -16,6 +16,10 @@ const userSchema = mongoose.Schema({
     },
     last_activity_at:{
         type:Date,
+    },
+    token:{
+        type:String,
+        required:true
     }
 });
 
