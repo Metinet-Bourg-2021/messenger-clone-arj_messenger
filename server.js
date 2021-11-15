@@ -28,8 +28,8 @@ io.on("connection", socket => {
 
     socket.on("@authenticate", userCtr.authenticate);
     
-    socket.on("@getUsers", userCtr.getUsers);
-    socket.on("@getOrCreateOneToOneConversation", conversationCtr.getOrCreateOneToOneConversation);
+    socket.on("@getUsers",userCtr.getUsers);
+    socket.on("@getOrCreateOneToOneConversation",conversationCtr.getOrCreateOneToOneConversation);
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", ({token}, callback) => {callback({code:"SUCCESS", data:{}});});
     

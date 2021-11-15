@@ -40,23 +40,28 @@ async function save({username, password}, callback)
 async function getUsers({token}, callback)
 {
     try{
-        const userFind = await User.findOne({token:token})
-        if(userFind)
+        if(!tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+        const users = await User.find({});
+
+        if(users.length > 0)
         {
-            const users = await User.find({});
-
-            if(users.length > 0)
-            {
-                return callback({code:"SUCCESS", data:{users:users}});
-            }else{
-                return callback({code:"NOT_FOUND_USER", data:{}});
-            }
-
+            return callback({code:"SUCCESS", data:{users:users}});
         }else{
-            return callback({code:"NOT_AUTHENTICATED", data:{}});
+            return callback({code:"NOT_FOUND_USER", data:{}});
         }
     }
     catch(err){
+        console.log(err)
+    }
+}
+
+async function tokenIsValid(token) {
+    try {
+        const userFind = await User.findOne({token: token})
+        if (userFind) {
+            return true;
+        }
+    } catch (err) {
         console.log(err)
     }
 }
