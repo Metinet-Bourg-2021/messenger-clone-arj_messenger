@@ -7,6 +7,10 @@ const { Server } = require("socket.io");
 
 const io = new Server(server, { cors: { origin: "*" } });
 
+mongoose.connect(process.env.BDD,{ useNewUrlParser: true,useUnifiedTopology: true })
+    .then(() => console.log('Connexion à MongoDB réussie !'))
+    .catch((err) => console.log(err)
+    );
 app.get("/", (req, res) => {
     res.send("A utiliser pour du debug si vous avez besoin...");
 });
