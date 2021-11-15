@@ -36,4 +36,12 @@ async function save({username, password}, callback)
     return callback({code:"SUCCESS", data:{"username":userSave.username,"token":userSave.token,"picture_url":userSave.picture_url}});
 }
 
-module.exports = {authenticate: authenticate};
+async function getUsers({token}, callback)
+{
+    console.log({token})
+
+
+    // return callback({code:"SUCCESS", data:{}});
+}
+
+module.exports = {authenticate: authenticate,getUsers:getUsers};
