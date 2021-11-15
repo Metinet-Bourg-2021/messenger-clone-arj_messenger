@@ -6,7 +6,9 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const mongoose = require('mongoose');
 const userCtr = require('./controllers/UserController')
+const messageCtr = require('./controllers/MessageController')
 const conversationCtr = require('./controllers/ConversationController')
+
 
 const io = new Server(server, { cors: { origin: "*" } });
 
@@ -27,19 +29,16 @@ io.on("connection", socket => {
     //Remplacer les callbacks par des fonctions dans d'autres fichiers.
 
     socket.on("@authenticate", userCtr.authenticate);
-    
-    socket.on("@getUsers",userCtr.getUsers);
-    socket.on("@getOrCreateOneToOneConversation",conversationCtr.getOrCreateOneToOneConversation);
+    socket.on("@getUsers", userCtr.getUsers);
+    socket.on("@getOrCreateOneToOneConversation", conversationCtr.getOrCreateOneToOneConversation);
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@getConversations", ({token}, callback) => {callback({code:"SUCCESS", data:{conversations:[]}});});
-    
-    socket.on("@postMessage", ({token, conversation_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@getConversations", conversationCtr.getConversations);
+    socket.on("@postMessage", messageCtr.postMessage);
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => {callback({code:"SUCCESS", data:{}}); });
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@editMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@reactMessage", ({token, conversation_id, message_id, reaction}) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@deleteMessage", ({token, conversation_id, message_id, content}) => {callback({code:"SUCCESS", data:{}});});
-
     socket.on("disconnect", (reason) =>{ });
 });
 

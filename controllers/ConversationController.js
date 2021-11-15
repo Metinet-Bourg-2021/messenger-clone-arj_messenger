@@ -67,4 +67,36 @@ async function getOrCreateOneToOneConversation({token, username}, callback)
         console.log(err)
     }
 }
-module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation};
+
+
+async function getConversations({token, username}, callback)
+{
+    try{
+        
+        const userFind = await User.findOne({token:token})
+        if(userFind)
+        {
+            const conversations = await Conversation.find({});
+            
+
+            if(conversations.length > 0)
+            {
+                return callback({code:"SUCCESS", data:{conversations:conversations}});
+            }else{
+                return callback({code:"NOT_FOUND_CONVERSATION", data:{}});
+            }
+            
+        }else{
+            return callback({code:"NOT_FOUND_USER", data:{}});
+        }
+       
+
+    }catch(err)
+    {
+        console.log(err)
+    }
+}
+
+
+module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations};
+

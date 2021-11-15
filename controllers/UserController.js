@@ -36,17 +36,17 @@ async function save({username, password}, callback)
     return callback({code:"SUCCESS", data:{"username":userSave.username,"token":userSave.token,"picture_url":userSave.picture_url}});
 }
 
+
 async function getUsers({token}, callback)
 {
     try{
         if(!tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
         const users = await User.find({});
-
         if(users.length > 0)
         {
             return callback({code:"SUCCESS", data:{users:users}});
         }else{
-            return callback({code:"NOT_FOUND_USER", data:{}});
+            return callback({code:"NOT_FOUND_USER", data:{users:[]}});
         }
     }
     catch(err){
