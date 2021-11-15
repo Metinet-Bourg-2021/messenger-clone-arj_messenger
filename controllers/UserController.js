@@ -43,7 +43,6 @@ async function getUsers({token}, callback)
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
-
             const users = await User.find({});
 
             if(users.length > 0)

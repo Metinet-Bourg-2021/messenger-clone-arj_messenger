@@ -6,7 +6,7 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const mongoose = require('mongoose');
 const userCtr = require('./controllers/UserController')
-const conversationCtr = require('./controllers/conversationController')
+const conversationCtr = require('./controllers/ConversationController')
 
 const io = new Server(server, { cors: { origin: "*" } });
 
