@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {Schema} = require('./Message');
 
 const conversationSchema = mongoose.Schema({
     id: {
@@ -10,25 +11,32 @@ const conversationSchema = mongoose.Schema({
         required:true
     },
     participants: {
-        type:Array,
-        required:true
+        type:[String],
+        default:[]
     },
     messages: {
-        type:Array
+        type:[Schema],
+        default:[]
     },
     title: {
         type:String,
-        required:true
+        default:null
     },
     theme:{
         type:String,
-        required:true
+        default:"BLUE"
     },
     updated_at: {
         type:Date,
     },
-    seen: {},
-    typing: {}
+    seen: {
+        type:Object,
+        default:{}
+    },
+    typing: {
+        type:Object,
+        default:{}
+    }
 }, { minimize: false });
 
 module.exports = mongoose.model('Conversation', conversationSchema);

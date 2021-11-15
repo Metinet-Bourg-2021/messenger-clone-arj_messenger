@@ -11,29 +11,36 @@ const messageSchema = mongoose.Schema({
     },
     content:{
         type: String,
-        required: true
+        required: true,
+        default:""
     },
     posted_at:{
         type: Date,
-        required: true
+        required: true,
+        default:new Date()
     },
     delivered_to:{
-        type: Array,
-        required: true
+        type: Object,
+        required: true,
+        default:{}
     },
     reply_to:{
         type: String,
+        default:null
     },
     edited: {
         type: Boolean,
+        default:false
     },
     deleted: {
         type: Boolean,
+        default:false
     },
     reactions: {
-        type: Array,
+        type: Object,
+        default:{}
     }
 
 }, { minimize: false });
 
-module.exports = mongoose.model('Message', messageSchema);
+module.exports = {Message:mongoose.model('Message', messageSchema),Schema:messageSchema};

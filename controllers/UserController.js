@@ -11,7 +11,6 @@ async function authenticate({username, password}, callback)
             await save({username, password}, callback)
         }else{
             let isValid = await bcrypt.compare(password,userFind.password)
-            console.log(userFind)
             if(isValid) return callback({code:"SUCCESS", data:{username:userFind.username,token:userFind.token,picture_url:userFind.picture_url}});
             else return callback({code:"NOT_AUTHENTICATED", data:{}});
         }
@@ -66,4 +65,4 @@ async function tokenIsValid(token) {
     }
 }
 
-module.exports = {authenticate: authenticate,getUsers:getUsers};
+module.exports = {authenticate: authenticate,getUsers:getUsers,tokenIsValid:tokenIsValid};
