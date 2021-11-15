@@ -29,7 +29,7 @@ io.on("connection", socket => {
     socket.on("@authenticate", ({username, password}, callback)=>userCtr.authenticate({username, password,socket,sockets},callback));
     socket.on("@getUsers",({token},callback)=>userCtr.getUsers({token,sockets,io},callback));
     socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets,io}, callback));
-    socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@createManyToManyConversation", ({token, usernames}, callback) => conversationCtr.createManyToManyConversation({token, usernames,sockets, io}, callback));
     socket.on("@getConversations", conversationCtr.getConversations);
     socket.on("@postMessage",({token, conversation_id, content}, callback)=>messageCtr.postMessage({token, conversation_id, content,sockets,io}, callback));
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));

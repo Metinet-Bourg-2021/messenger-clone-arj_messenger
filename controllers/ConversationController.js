@@ -176,12 +176,58 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
     }catch (err){
         console.log(err)
     }
+}
 
+async function createManyToManyConversation({token, usernames}, callback)
+{
+    try{
+        const userFind = await User.findOne({token:token})
+        if(userFind)
+        {
+            let conversation = new Conversation({
+                id: 1,
+                type: "many_to_many",
+                participants: usernames,
+                messages: [{}],
+                title: "title",
+                theme: "theme",
+                updated_at: Date.now(),
+                seen: {},
+                typing: {}
+            });
+
+
+            console.log(conversation);
+
+
+            const conversationSave = await conversation.save(conversation);
+        
+            return callback({code:"SUCCESS", data:{
+                conversation: {
+                    id: conversationSave.id,
+                    type: conversationSave.type,
+                    participants: conversationSave.participants,
+                    messages: conversationSave.messages,
+                    title: conversationSave.title,
+                    theme: conversationSave.theme,
+                    updated_at: conversationSave.updated_at,
+                    seen: conversationSave.seen,
+                    typing: conversationSave.typing,
+                }
+            }});
+
+
+        }else{
+            return callback({code:"NOT_AUTHENTICATED", data:{}});
+        }
+    }
+    catch(err){
+        console.log(err)
+    }
 }
 
 module.exports = {
-    getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations,
+    getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations, createManyToManyConversation:createManyToManyConversation,
     seeConversation:seeConversation,addParticipants:addParticipants,
     deleteParticipants:deleteParticipants
 };
-
