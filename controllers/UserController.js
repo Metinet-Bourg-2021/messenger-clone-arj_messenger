@@ -2,10 +2,14 @@ const bcrypt = require('bcrypt');
 const User = require('./../models/user');
 const picture = require('../pictures');
 const jwt = require('jsonwebtoken');
+const Conversation = require("./../models/Conversation");
+const {Message} = require("../models/Message");
+const global = require('./global')
 
 async function authenticate({username, password}, callback)
 {
     try{
+        //await fakedata()
         const userFind = await User.findOne({username:username})
         if(!userFind){
             await save({username, password}, callback)
@@ -61,6 +65,27 @@ async function tokenIsValid(token) {
             return true;
         }
     } catch (err) {
+        console.log(err)
+    }
+}
+async function  fakedata(){
+    const message = new Message({
+        id:await global.generateId(Message),
+        from:"redouane",
+        content:"bonjour !",
+
+    })
+    const conversation = new Conversation({
+        id:await global.generateId(Conversation),
+        type:'one_to_one',
+        participants:['redouane','oui'],
+        updated_at:Date.now(),
+        messages:[message]
+    })
+    try{
+        const messageSave = await message.save()
+        const conversationSave = await conversation.save()
+    }catch (err){
         console.log(err)
     }
 }

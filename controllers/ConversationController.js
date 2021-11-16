@@ -1,16 +1,20 @@
 const User = require('./../models/user');
 const userCtr = require('./UserController')
 const Conversation = require('./../models/Conversation');
+const global = require('./global')
 
 async function getOrCreateOneToOneConversation({token, username}, callback)
 {
     try{
         if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+        const findUser = await User.findOne({usernale:username})
+        if(!findUser) return callback({code:"NOT_VALID_USERNAMES",data:{}})
+
         const userConnected = await User.findOne({token:token})
         const conversationFind = await Conversation.findOne({participants:[userConnected.username,username]})
         if(!conversationFind){
             const conversation = new Conversation({
-                id:1,
+                id:await global.generateId(Conversation),
                 type:'one_to_one',
                 participants:[userConnected.username,username],
                 updated_at:Date.now(),
@@ -50,7 +54,7 @@ async function getOrCreateOneToOneConversation({token, username}, callback)
             return callback({code:"SUCCESS",
                 data:{
                     conversation:{
-                        id:conversationFind._id,
+                        id:conversationFind.id,
                         type:conversationFind.type,
                         participants:conversationFind.participants,
                         title:conversationFind.title,
@@ -72,13 +76,11 @@ async function getOrCreateOneToOneConversation({token, username}, callback)
 async function getConversations({token, username}, callback)
 {
     try{
-        
+        if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
-            const conversations = await Conversation.find({});
-            
-
+            const conversations = await Conversation.find({participants : { $in :userFind.username  }});
             if(conversations.length > 0)
             {
                 return callback({code:"SUCCESS", data:{conversations:conversations}});
@@ -86,17 +88,12 @@ async function getConversations({token, username}, callback)
                 return callback({code:"NOT_FOUND_CONVERSATION", data:{}});
             }
             
-        }else{
-            return callback({code:"NOT_FOUND_USER", data:{}});
         }
-       
-
     }catch(err)
     {
         console.log(err)
     }
 }
-
 
 module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations};
 

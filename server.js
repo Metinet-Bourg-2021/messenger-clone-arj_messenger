@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const userCtr = require('./controllers/UserController')
 const messageCtr = require('./controllers/MessageController')
 const conversationCtr = require('./controllers/ConversationController')
+const {Message} = require("./models/Message");
 
 
 const io = new Server(server, { cors: { origin: "*" } });
@@ -33,12 +34,12 @@ io.on("connection", socket => {
     socket.on("@getOrCreateOneToOneConversation", conversationCtr.getOrCreateOneToOneConversation);
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", conversationCtr.getConversations);
-    socket.on("@postMessage", messageCtr.postMessage);
+    //socket.on("@postMessage", messageCtr.postMessage);
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => {callback({code:"SUCCESS", data:{}}); });
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@editMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@reactMessage", ({token, conversation_id, message_id, reaction}) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@deleteMessage", ({token, conversation_id, message_id, content}) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@deleteMessage",messageCtr.deleteMessage);
     socket.on("disconnect", (reason) =>{ });
 });
 
