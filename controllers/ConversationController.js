@@ -2,13 +2,12 @@ const User = require('./../models/user');
 const userCtr = require('./UserController')
 const Conversation = require('./../models/Conversation');
 const global = require('./global')
-
 async function getOrCreateOneToOneConversation({token, username}, callback)
 {
     try{
         if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
-        const findUser = await User.findOne({usernale:username})
-        if(!findUser) return callback({code:"NOT_VALID_USERNAMES",data:{}})
+        const userFind = await User.find({username:username})
+        if(userFind) return callback({code:"NOT_VALID_USERNAMES", data:{}});
 
         const userConnected = await User.findOne({token:token})
         const conversationFind = await Conversation.findOne({participants:[userConnected.username,username]})
@@ -54,7 +53,7 @@ async function getOrCreateOneToOneConversation({token, username}, callback)
             return callback({code:"SUCCESS",
                 data:{
                     conversation:{
-                        id:conversationFind.id,
+                        id:conversationFind._id,
                         type:conversationFind.type,
                         participants:conversationFind.participants,
                         title:conversationFind.title,
@@ -75,8 +74,9 @@ async function getOrCreateOneToOneConversation({token, username}, callback)
 
 async function getConversations({token, username}, callback)
 {
+    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
-        if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+        
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
@@ -88,12 +88,17 @@ async function getConversations({token, username}, callback)
                 return callback({code:"NOT_FOUND_CONVERSATION", data:{}});
             }
             
+        }else{
+            return callback({code:"NOT_FOUND_USER", data:{}});
         }
+       
+
     }catch(err)
     {
         console.log(err)
     }
 }
+
 
 module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations};
 
