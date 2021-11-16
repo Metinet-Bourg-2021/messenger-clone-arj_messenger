@@ -76,11 +76,8 @@ async function getConversations({token, username}, callback)
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
+            const conversations = await Conversation.find({});
             
-            const conversations = await Conversation.find({participants : { $in :userFind.username  }});
-            console.log(conversations);
-            
-
 
             if(conversations.length > 0)
             {
@@ -99,6 +96,7 @@ async function getConversations({token, username}, callback)
         console.log(err)
     }
 }
+
 
 module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations};
 
