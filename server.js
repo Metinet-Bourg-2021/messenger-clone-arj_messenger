@@ -8,9 +8,7 @@ const mongoose = require('mongoose');
 const userCtr = require('./controllers/UserController')
 const messageCtr = require('./controllers/MessageController')
 const conversationCtr = require('./controllers/ConversationController')
-const {Message} = require("./models/Message");
-
-
+let sockets  = []
 const io = new Server(server, { cors: { origin: "*" } });
 
 mongoose.connect(process.env.BDD,{ useNewUrlParser: true,useUnifiedTopology: true })
@@ -28,18 +26,18 @@ server.listen(process.env.PORT, () => {
 io.on("connection", socket => {
     //Penser a conserver le socket pour pouvoir s'en servir plus tard
     //Remplacer les callbacks par des fonctions dans d'autres fichiers.
-
-    socket.on("@authenticate", userCtr.authenticate);
+    socket.on("@authenticate", ({username, password}, callback)=>userCtr.authenticate({username, password,socket,sockets},callback));
     socket.on("@getUsers", userCtr.getUsers);
-    socket.on("@getOrCreateOneToOneConversation", conversationCtr.getOrCreateOneToOneConversation);
+    socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets}, callback));
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", conversationCtr.getConversations);
-    //socket.on("@postMessage", messageCtr.postMessage);
+    socket.on("@postMessage", messageCtr.postMessage);
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => {callback({code:"SUCCESS", data:{}}); });
+
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@editMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@editMessage",messageCtr.updateMessage);
     socket.on("@reactMessage", ({token, conversation_id, message_id, reaction}) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@deleteMessage",messageCtr.deleteMessage);
+    socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,socket,io},callback));
     socket.on("disconnect", (reason) =>{ });
 });
 
