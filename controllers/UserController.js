@@ -18,7 +18,6 @@ async function authenticate({username, password,socket,sockets}, callback)
             const userSave = await userFind.save()
             if(!userSave) return callback({code:"NOT_AUTHENTICATED", data:{}});
             let isValid = await bcrypt.compare(password,userFind.password)
-           console.log(sockets)
             if(isValid) return callback({code:"SUCCESS", data:{username:userFind.username,token:userFind.token,picture_url:userFind.picture_url}});
             else return callback({code:"NOT_AUTHENTICATED", data:{}});
         }
@@ -47,17 +46,20 @@ async function save({username, password,socket,sockets}, callback)
 }
 
 
-async function getUsers({token}, callback)
+async function getUsers({token,sockets,io}, callback)
 {
     try{
         if(!tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+        const userConnected = await User.findOne({token:token});
+        console.log(sockets)
         const users = await User.find({});
-        if(users.length > 0)
-        {
-            return callback({code:"SUCCESS", data:{users:users}});
-        }else{
-            return callback({code:"NOT_FOUND_USER", data:{users:[]}});
-        }
+        let usernames = []
+        sockets.forEach((socket)=>usernames.push(socket.username))
+        const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
+        io.emit('@usersAvailable',{
+            usernames
+        })
+        return callback({code:"SUCCESS", data:{users:users}});
     }
     catch(err){
         console.log(err)

@@ -17,7 +17,6 @@ async function deleteMessage({token, message_id, conversation_id,sockets,io}, ca
         let index = conversation.messages.findIndex(message=>message.id === message_id)
         conversation.messages[index] = messageDelete
         await conversation.save()
-        console.log(io.sockets.adapter.rooms)
        /* io.to(conversation.id).emit('@messageDeleted',{
             conversation_id:conversation.id,
             message:messageDelete

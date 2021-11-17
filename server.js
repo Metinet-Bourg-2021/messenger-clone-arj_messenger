@@ -27,12 +27,12 @@ io.on("connection", socket => {
     //Penser a conserver le socket pour pouvoir s'en servir plus tard
     //Remplacer les callbacks par des fonctions dans d'autres fichiers.
     socket.on("@authenticate", ({username, password}, callback)=>userCtr.authenticate({username, password,socket,sockets},callback));
-    socket.on("@getUsers", userCtr.getUsers);
-    socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets}, callback));
+    socket.on("@getUsers",({token},callback)=>userCtr.getUsers({token,sockets,io},callback));
+    socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets,io}, callback));
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", conversationCtr.getConversations);
     socket.on("@postMessage", messageCtr.postMessage);
-    socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => {callback({code:"SUCCESS", data:{}}); });
+    socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
 
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@editMessage",messageCtr.updateMessage);
