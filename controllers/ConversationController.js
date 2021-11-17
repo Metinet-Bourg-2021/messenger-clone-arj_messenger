@@ -2,16 +2,19 @@ const User = require('./../models/user');
 const userCtr = require('./UserController')
 const Conversation = require('./../models/Conversation');
 const global = require('./global')
-async function getOrCreateOneToOneConversation({token, username}, callback)
+async function getOrCreateOneToOneConversation({token, username,sockets}, callback)
 {
     try{
         if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
-        const userFind = await User.find({username:username})
-        if(userFind) return callback({code:"NOT_VALID_USERNAMES", data:{}});
+        const userFind = await User.findOne({username:username})
+        const socketUserFind = sockets.filter(socket=>socket.client.id === userFind.socketID)
+        if(!userFind) return callback({code:"NOT_VALID_USERNAMES", data:{}});
 
         const userConnected = await User.findOne({token:token})
-        const conversationFind = await Conversation.findOne({participants:[userConnected.username,username]})
-        if(!conversationFind){
+        const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
+
+        const conversationFind = await Conversation.findOne({participants:[userConnected.username,userFind.username]})
+         if(!conversationFind){
             const conversation = new Conversation({
                 id:await global.generateId(Conversation),
                 type:'one_to_one',
@@ -20,49 +23,21 @@ async function getOrCreateOneToOneConversation({token, username}, callback)
             })
             const conversationSave = await conversation.save()
             if(conversationSave){
-                console.log({
-                    conversation:{
-                        id:conversationSave.id,
-                        type:conversationSave.type,
-                        participants:conversationSave.participants,
-                        title:conversationSave.title,
-                        theme:conversation.theme,
-                        seen: conversationSave.seen,
-                        typing: conversationSave.typing,
-                        messages:conversationSave.messages,
-                        updated_at:conversationSave.updated_at
-                    }
+                socketUserConnected[0].client.join(conversationSave.id)
+                socketUserFind[0].client.emit('@conversationCreated',{
+                    conversation:conversationSave
                 })
                 return callback({code:"SUCCESS",
                     data:{
-                        conversation:{
-                            id:conversationSave.id,
-                            type:conversationSave.type,
-                            participants:conversationSave.participants,
-                            title:conversationSave.title,
-                            theme:conversation.theme,
-                            seen: conversationSave.seen,
-                            typing: conversationSave.typing,
-                            messages:conversationSave.messages,
-                            updated_at:conversationSave.updated_at
-                        }
+                        conversation:conversationSave
                     }
                 })
             }
         }else{
-            return callback({code:"SUCCESS",
+             socketUserConnected[0].client.join(conversationFind.id)
+             return callback({code:"SUCCESS",
                 data:{
-                    conversation:{
-                        id:conversationFind._id,
-                        type:conversationFind.type,
-                        participants:conversationFind.participants,
-                        title:conversationFind.title,
-                        theme:conversationFind.theme,
-                        updated_at:conversationFind.updated_at ,
-                        seen: conversationFind.seen,
-                        typing: conversationFind.typing,
-                        message:conversationFind.messages
-                    }
+                    conversation:conversationFind
                 }
             })
         }
@@ -81,18 +56,10 @@ async function getConversations({token, username}, callback)
         if(userFind)
         {
             const conversations = await Conversation.find({participants : { $in :userFind.username  }});
-            if(conversations.length > 0)
-            {
-                return callback({code:"SUCCESS", data:{conversations:conversations}});
-            }else{
-                return callback({code:"NOT_FOUND_CONVERSATION", data:{}});
-            }
-            
-        }else{
-            return callback({code:"NOT_FOUND_USER", data:{}});
-        }
-       
 
+            return callback({code:"SUCCESS", data:{conversations:conversations}});
+
+        }
     }catch(err)
     {
         console.log(err)

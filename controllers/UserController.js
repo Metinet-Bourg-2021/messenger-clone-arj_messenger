@@ -2,15 +2,23 @@ const bcrypt = require('bcrypt');
 const User = require('./../models/user');
 const picture = require('../pictures');
 const jwt = require('jsonwebtoken');
+const {Message} = require("../models/Message");
+const global = require('./global')
+const Conversation = require('../models/Conversation')
 
-async function authenticate({username, password}, callback)
+async function authenticate({username, password,socket,sockets}, callback)
 {
     try{
         const userFind = await User.findOne({username:username})
         if(!userFind){
-            await save({username, password}, callback)
+            await save({username, password,socket,sockets}, callback)
         }else{
+            userFind.socketID = socket.id
+            sockets.push({username:userFind.username,client:socket})
+            const userSave = await userFind.save()
+            if(!userSave) return callback({code:"NOT_AUTHENTICATED", data:{}});
             let isValid = await bcrypt.compare(password,userFind.password)
+           console.log(sockets)
             if(isValid) return callback({code:"SUCCESS", data:{username:userFind.username,token:userFind.token,picture_url:userFind.picture_url}});
             else return callback({code:"NOT_AUTHENTICATED", data:{}});
         }
@@ -19,13 +27,14 @@ async function authenticate({username, password}, callback)
     }
 }
 
-async function save({username, password}, callback)
+async function save({username, password,socket,sockets}, callback)
 {
     const hash = await bcrypt.hash(password,10)
     let user = new User({
         username: username,
         password: hash,
         picture_url:picture.getRandomURL(),
+        socketID:socket.id
     });
     const token = await jwt.sign({userId: user._id}, 'secret_key');
     user.token = token
@@ -33,6 +42,7 @@ async function save({username, password}, callback)
     if(!userSave){
         return callback({code:"NOT_AUTHENTICATED", data:{}});
     }
+    sockets.push({username:userSave.username,client:socket})
     return callback({code:"SUCCESS", data:{"username":userSave.username,"token":userSave.token,"picture_url":userSave.picture_url}});
 }
 
@@ -64,7 +74,7 @@ async function tokenIsValid(token) {
         console.log(err)
     }
 }
-/*async function  fakedata(){
+async function  fakedata(){
     const message = new Message({
         id:await global.generateId(Message),
         from:"redouane",
@@ -79,11 +89,11 @@ async function tokenIsValid(token) {
         messages:[message]
     })
     try{
-        const messageSave = await message.save()
-        const conversationSave = await conversation.save()
+        await message.save()
+        await conversation.save()
     }catch (err){
         console.log(err)
     }
-}*/
+}
 
 module.exports = {authenticate: authenticate,getUsers:getUsers,tokenIsValid:tokenIsValid};
