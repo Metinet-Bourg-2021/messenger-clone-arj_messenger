@@ -78,15 +78,29 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
         if(userFind)
         {
             const conversation = await Conversation.findOne({id:conversation_id});
-            conversation.seen = {
-                [userFind.username]:{
+
+            let seenOne = {
                     message_id,
                     time:new Date()
                 }
-            }
-            io.to("une room").emit('@conversationSeen',{
-                conversation
+            console.log( userFind.username)
+            console.log( conversation.seen[userFind.username])
+            conversation.seen[userFind.username] = seenOne
+            console.log( conversation.seen[userFind.username])
+
+           const conversationSave  =  await conversation.save()
+            console.log( conversationSave.seen)
+
+            sockets.forEach((socket)=>{
+                if(conversation.participants.includes(socket.username)){
+                    socket.client.emit('@conversationSeen',{
+                        conversation:conversation
+                    })
+                }
             })
+           /* io.to("une room").emit('@conversationSeen',{
+                conversation
+            })*/
         }
     }catch (err){
         console.log(err)

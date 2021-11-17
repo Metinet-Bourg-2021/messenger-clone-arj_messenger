@@ -35,9 +35,9 @@ io.on("connection", socket => {
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
 
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@editMessage",messageCtr.updateMessage);
-    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction}) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,socket,io},callback));
+    socket.on("@editMessage",({token, conversation_id, message_id, content}, callback)=>messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
+    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,sockets,io},callback));
     socket.on("disconnect", (reason) =>{ });
 });
 
