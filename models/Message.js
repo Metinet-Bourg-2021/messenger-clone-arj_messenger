@@ -25,8 +25,8 @@ const messageSchema = mongoose.Schema({
         default:{}
     },
     reply_to:{
-        type: String,
-        default:null
+        type: Object,
+        default:{}
     },
     edited: {
         type: Boolean,

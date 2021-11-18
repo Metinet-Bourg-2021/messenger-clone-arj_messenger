@@ -14,7 +14,7 @@ const io = new Server(server, { cors: { origin: "*" } });
 mongoose.connect(process.env.BDD,{ useNewUrlParser: true,useUnifiedTopology: true })
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch((err) => console.log(err)
-);
+    );
 app.get("/", (req, res) => {
     res.send("A utiliser pour du debug si vous avez besoin...");
 });
@@ -31,11 +31,11 @@ io.on("connection", socket => {
     socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets,io}, callback));
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", conversationCtr.getConversations);
-    socket.on("@postMessage", messageCtr.postMessage);
+    socket.on("@postMessage",({token, conversation_id, content}, callback)=>messageCtr.postMessage({token, conversation_id, content,sockets,io}, callback));
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
 
-    socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@editMessage",({token, conversation_id, message_id, content}, callback)=>messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
+    socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) =>messageCtr.replyMessage({token, conversation_id, message_id, content,sockets}, callback));
+    socket.on("@editMessage",({token, conversation_id, message_id, content}, callback) => messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
     socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,sockets,io},callback));
     socket.on("disconnect", (reason) =>{ });
