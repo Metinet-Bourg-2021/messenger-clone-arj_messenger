@@ -13,12 +13,14 @@ async function authenticate({username, password,socket,sockets}, callback)
         if(!userFind){
             await save({username, password,socket,sockets}, callback)
         }else{
-            userFind.socketID = socket.id
-            sockets.push({username:userFind.username,client:socket})
-            const userSave = await userFind.save()
-            if(!userSave) return callback({code:"NOT_AUTHENTICATED", data:{}});
+            //userFind.socketID = socket.id
+            //const userSave = await userFind.save()
+           // if(!userSave) return callback({code:"NOT_AUTHENTICATED", data:{}});
             let isValid = await bcrypt.compare(password,userFind.password)
-            if(isValid) return callback({code:"SUCCESS", data:{username:userFind.username,token:userFind.token,picture_url:userFind.picture_url}});
+            if(isValid) {
+                sockets.push({username:userFind.username,client:socket})
+                return callback({code:"SUCCESS", data:{username:userFind.username,token:userFind.token,picture_url:userFind.picture_url}});
+            }
             else return callback({code:"NOT_AUTHENTICATED", data:{}});
         }
     }catch (err){
@@ -33,7 +35,7 @@ async function save({username, password,socket,sockets}, callback)
         username: username,
         password: hash,
         picture_url:picture.getRandomURL(),
-        socketID:socket.id
+        //socketID:socket.id
     });
     const token = await jwt.sign({userId: user._id}, 'secret_key');
     user.token = token
@@ -49,13 +51,13 @@ async function save({username, password,socket,sockets}, callback)
 async function getUsers({token,sockets,io}, callback)
 {
     try{
-        if(!tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
-        const userConnected = await User.findOne({token:token});
-        console.log(sockets)
+        let isValid = await tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
+        //const userConnected = await User.findOne({token:token});
         const users = await User.find({});
         let usernames = []
         sockets.forEach((socket)=>usernames.push(socket.username))
-        const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
+       // const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
         io.emit('@usersAvailable',{
             usernames
         })
@@ -65,6 +67,22 @@ async function getUsers({token,sockets,io}, callback)
         console.log(err)
     }
 }
+async function disconnect({reason,sockets,io}){
+    let socketIds = Array.from( io.sockets.sockets.keys() );
+
+    sockets.forEach((userSocket,index)=>{
+        if(!socketIds.includes(userSocket.client.id))
+            sockets.splice(index,1)
+    })
+
+    let usernames = []
+    sockets.forEach((socket)=>usernames.push(socket.username))
+    io.emit('@usersAvailable',{
+        usernames
+    })
+
+}
+
 
 async function tokenIsValid(token) {
     try {
@@ -76,6 +94,7 @@ async function tokenIsValid(token) {
         console.log(err)
     }
 }
+
 async function  fakedata(){
     const message = new Message({
         id:await global.generateId(Message),
@@ -98,4 +117,6 @@ async function  fakedata(){
     }
 }
 
-module.exports = {authenticate: authenticate,getUsers:getUsers,tokenIsValid:tokenIsValid};
+
+
+module.exports = {authenticate: authenticate,getUsers:getUsers,tokenIsValid:tokenIsValid,disconnect:disconnect};

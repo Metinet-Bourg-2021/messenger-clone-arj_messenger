@@ -6,8 +6,9 @@ const User = require('./../models/user');
 
 async function deleteMessage({token, message_id, conversation_id,sockets,io}, callback)
 {
-    if(!userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const messageDelete = await Message.findOne({id:message_id})
         messageDelete.deleted = true;
         await messageDelete.save()
@@ -33,9 +34,9 @@ async function deleteMessage({token, message_id, conversation_id,sockets,io}, ca
 }
 async function updateMessage({token, conversation_id, message_id, content,sockets}, callback)
 {
-    console.log(sockets)
-    if(!userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const message = await Message.findOne({id:message_id})
         message.content = content;
         message.edited = true;
@@ -64,8 +65,9 @@ async function updateMessage({token, conversation_id, message_id, content,socket
 }
 async function replyMessage({token, conversation_id, message_id, content,sockets},callback)
 {
-    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userConnected = await User.findOne({token: token})
         const conversationFind = await Conversation.findOne({id: conversation_id});
         const messageFind = await Message.findOne({id: message_id});
@@ -104,9 +106,9 @@ async function replyMessage({token, conversation_id, message_id, content,sockets
 }
 async function postMessage({token, conversation_id, content,sockets,io}, callback)
 {
-    console.log(io.sockets.adapter.rooms)
-    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userConnected = await User.findOne({token:token})
         const conversationFind = await  Conversation.findOne({id:conversation_id});
         const socketUserConnected = sockets.filter((socket)=>socket.username===userConnected.username)

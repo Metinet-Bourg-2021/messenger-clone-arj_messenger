@@ -5,13 +5,14 @@ const global = require('./global')
 async function getOrCreateOneToOneConversation({token, username,sockets}, callback)
 {
     try{
-        if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+        let isValid = await tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userFind = await User.findOne({username:username})
-        const socketUserFind = sockets.filter(socket=>socket.client.id === userFind.socketID)
+        const socketUserFind = sockets.filter(socket=>socket.username === userFind.username)
         if(!userFind) return callback({code:"NOT_VALID_USERNAMES", data:{}});
 
         const userConnected = await User.findOne({token:token})
-        const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
+        const socketUserConnected = sockets.filter(socket=>socket.username === userConnected.username)
 
         const conversationFind = await Conversation.findOne({participants:[userConnected.username,userFind.username]})
          if(!conversationFind){
@@ -56,8 +57,9 @@ async function getOrCreateOneToOneConversation({token, username,sockets}, callba
 
 async function getConversations({token, username}, callback)
 {
-    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
@@ -71,9 +73,10 @@ async function getConversations({token, username}, callback)
     }
 }
 async function seeConversation({token, conversation_id, message_id,sockets,io}, callback){
-    console.log(io.sockets.adapter.rooms)
-    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+    console.log(sockets)
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
@@ -98,9 +101,6 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
                     })
                 }
             })
-           /* io.to("une room").emit('@conversationSeen',{
-                conversation
-            })*/
         }
     }catch (err){
         console.log(err)
