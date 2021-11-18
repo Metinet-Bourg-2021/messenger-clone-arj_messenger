@@ -13,9 +13,6 @@ async function authenticate({username, password,socket,sockets}, callback)
         if(!userFind){
             await save({username, password,socket,sockets}, callback)
         }else{
-            //userFind.socketID = socket.id
-            //const userSave = await userFind.save()
-           // if(!userSave) return callback({code:"NOT_AUTHENTICATED", data:{}});
             let isValid = await bcrypt.compare(password,userFind.password)
             if(isValid) {
                 sockets.push({username:userFind.username,client:socket})
@@ -35,7 +32,6 @@ async function save({username, password,socket,sockets}, callback)
         username: username,
         password: hash,
         picture_url:picture.getRandomURL(),
-        //socketID:socket.id
     });
     const token = await jwt.sign({userId: user._id}, 'secret_key');
     user.token = token
@@ -53,11 +49,9 @@ async function getUsers({token,sockets,io}, callback)
     try{
         let isValid = await tokenIsValid(token)
         if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
-        //const userConnected = await User.findOne({token:token});
         const users = await User.find({});
         let usernames = []
         sockets.forEach((socket)=>usernames.push(socket.username))
-       // const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
         io.emit('@usersAvailable',{
             usernames
         })
