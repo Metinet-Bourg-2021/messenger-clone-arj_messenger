@@ -76,8 +76,8 @@ async function replyMessage({token, conversation_id, message_id, content,sockets
                 from: userConnected.username,
                 content: content,
                 posted_at: Date.now(),
-                reply_to: {message:messageFind},
-                delivered_to:{oui:new Date()}
+                reply_to: messageFind,
+                delivered_to:{[userConnected.username]:new Date()}
             })
             conversationFind.messages.push(message);
             let messageSave = await message.save();
