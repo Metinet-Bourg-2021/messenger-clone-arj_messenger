@@ -44,7 +44,6 @@ async function updateMessage({token, conversation_id, message_id, content,socket
 
         const conversation = await  Conversation.findOne({id:conversation_id})
 
-        let index = conversation.messages.findIndex(message=>message.id === message_id)
         conversation.messages[index] = message
         await conversation.save()
 
