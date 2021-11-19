@@ -65,8 +65,13 @@ async function disconnect({reason,sockets,io}){
     let socketIds = Array.from( io.sockets.sockets.keys() );
 
     sockets.forEach((userSocket,index)=>{
-        if(!socketIds.includes(userSocket.client.id))
-            sockets.splice(index,1)
+        if(!socketIds.includes(userSocket.client.id)) {
+            User.findOne({username:userSocket.username}).then((result)=>{
+                result.token = ""
+                result.save()
+            })
+            sockets.splice(index, 1)
+        }
     })
 
     let usernames = []
