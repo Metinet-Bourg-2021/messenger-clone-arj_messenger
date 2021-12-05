@@ -1,8 +1,8 @@
 const Conversation = require('./../models/Conversation');
+const User = require('./../models/user');
 const {Message} = require("../models/Message");
 const userCtr = require("./UserController");
 const global = require("./global");
-const User = require('./../models/user');
 
 async function deleteMessage({token, message_id, conversation_id,sockets,io}, callback)
 {
@@ -48,8 +48,45 @@ async function updateMessage({token, conversation_id, message_id, content}, call
         console.log(err)
     }
 }
-async function postMessage({token, conversation_id, content}, callback)
+async function postMessage({token, conversation_id, content,sockets,io}, callback)
 {
+    console.log(io.sockets.adapter.rooms)
+    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+    try{
+        const userConnected = await User.findOne({token:token})
+        const conversationFind = await  Conversation.findOne({id:conversation_id});
+        const socketUserConnected = sockets.filter((socket)=>socket.username===userConnected.username)
+        if(conversationFind){
+            const message = new Message({
+                id: await global.generateId(Message),
+                from:userConnected.username,
+                content: content,
+                posted_at: Date.now(),
+                //delivered_to: [userConnected.username,username],
+            })
+            conversationFind.messages.push(message);
+            let messageSave = await message.save();
+            await conversationFind.save();
+            if(socketUserConnected.length > 0)
+            {
+                console.log(sockets)
+                sockets.forEach((socket)=>{
+                    console.log(conversationFind.participants.includes(socket.username))
+                    if(conversationFind.participants.includes(socket.username)){
+                        socket.client.emit('@messagePosted',{
+                            conversation_id,
+                            message:messageSave
+                        })
+                    }
+                })
 
+                return callback({code:"SUCCESS", data:{message:messageSave}});
+            }
+        }else{
+            return callback({code:"NOT_FOUND_CONVERSATION", data:{}});
+        }
+    }catch (err){
+        console.log(err)
+    }
 }
 module.exports = {deleteMessage: deleteMessage,updateMessage:updateMessage,postMessage:postMessage};

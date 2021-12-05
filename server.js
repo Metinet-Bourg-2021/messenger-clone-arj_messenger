@@ -31,8 +31,9 @@ io.on("connection", socket => {
     socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets,io}, callback));
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", conversationCtr.getConversations);
-    socket.on("@postMessage", messageCtr.postMessage);
+
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
+    socket.on("@postMessage",({token, conversation_id, content}, callback)=>messageCtr.postMessage({token, conversation_id, content,sockets,io}, callback));
 
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@editMessage",messageCtr.updateMessage);
