@@ -15,8 +15,11 @@ async function authenticate({username, password,socket,sockets}, callback)
         }else{
             let isValid = await bcrypt.compare(password,userFind.password)
             if(isValid) {
+                const token = await jwt.sign({userId: userFind._id}, 'secret_key');
+                userFind.token = token
+                const userSave = await userFind.save()
                 sockets.push({username:userFind.username,client:socket})
-                return callback({code:"SUCCESS", data:{username:userFind.username,token:userFind.token,picture_url:userFind.picture_url}});
+                return callback({code:"SUCCESS", data:{username:userSave.username,token:userSave.token,picture_url:userSave.picture_url}});
             }
             else return callback({code:"NOT_AUTHENTICATED", data:{}});
         }

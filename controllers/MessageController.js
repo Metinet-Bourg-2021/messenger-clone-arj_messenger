@@ -117,11 +117,12 @@ async function postMessage({token, conversation_id, content,sockets,io}, callbac
                 from:userConnected.username,
                 content: content,
                 posted_at: Date.now(),
-                delivered_to:{oui:new Date()}
+                //delivered_to:{oui:new Date()}
             })
+            conversationFind.updated_at = new Date();
             conversationFind.messages.push(message);
             let messageSave = await message.save();
-            await conversationFind.save();
+            const conversationSave = await conversationFind.save();
             if(sockets.length > 0)
             {
                 sockets.forEach((socket)=>{
