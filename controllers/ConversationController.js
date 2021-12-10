@@ -22,8 +22,14 @@ async function getOrCreateOneToOneConversation({token, username,sockets}, callba
                 participants:[userConnected.username,username],
                 updated_at:Date.now(),
                 seen:{
-                    [userConnected.username]:-1,
-                    [userFind.username]:-1,
+                    [userConnected.username]:{
+                        message_id:-1,
+                        time:-1
+                    },
+                    [userFind.username]:{
+                        message_id:-1,
+                        time:-1
+                    },
                 }
 
             })
@@ -90,7 +96,6 @@ async function deleteParticipants({token,conversation_id,username,sockets},callb
 }
 
 async function addParticipants({token,conversation_id,username,sockets},callback){
-    console.log(conversation_id)
     try{
         let isValid = await userCtr.tokenIsValid(token)
         if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
@@ -101,7 +106,7 @@ async function addParticipants({token,conversation_id,username,sockets},callback
         if(conversation){
             conversation.participants.push(userAdd.username)
             //conversation.seen[userAdd.username] = -1
-            //update le updated_at
+
             const conversationSave = await conversation.save()
             console.log(conversationSave)
             sockets.forEach(socket=>{
@@ -149,14 +154,19 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
         {
             const conversation = await Conversation.findOne({id:conversation_id});
 
-            conversation.seen[userFind.username] = {
+            let newSeen = conversation.seen
+            newSeen[userFind.username] = {
                     message_id,
-                    time:new Date()
+                    time: new Date()
             }
+            conversation.set({seen:newSeen});
+
            const conversationSave  =  await conversation.save()
 
+            console.log(conversationSave.seen)
             sockets.forEach((socket)=>{
                 if(conversation.participants.includes(socket.username)){
+                    console.log('ici')
                     socket.client.emit('@conversationSeen',{
                         conversation:conversation
                     })
