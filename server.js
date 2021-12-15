@@ -39,7 +39,7 @@ io.on("connection", socket => {
 
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) =>messageCtr.replyMessage({token, conversation_id, message_id, content,sockets}, callback));
     socket.on("@editMessage",({token, conversation_id, message_id, content}, callback) => messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
-    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => messageCtr.reactMessage({token, conversation_id, message_id, reaction,sockets},callback));
     socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,sockets,io},callback));
     socket.on("disconnect", (reason) =>userCtr.disconnect({reason,sockets,io}));
 });
