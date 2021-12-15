@@ -2,7 +2,8 @@ const User = require('./../models/user');
 const userCtr = require('./UserController')
 const Conversation = require('./../models/Conversation');
 const global = require('./global')
-async function getOrCreateOneToOneConversation({token, username,sockets}, callback)
+
+async function getOrCreateOneToOneConversation({token, username, sockets}, callback)
 {
     try{
         let isValid = await userCtr.tokenIsValid(token)
@@ -56,6 +57,52 @@ async function getOrCreateOneToOneConversation({token, username,sockets}, callba
             })
         }
     }catch (err){
+        console.log(err)
+    }
+}
+
+async function createManyToManyConversation({token, usernames, sockets}, callback)
+{
+    try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
+
+        const userFind = await User.findOne({token:token})
+        //const socketUserFind = sockets.filter(socket=>socket.client.id === userFind.socketID);
+        
+        if(userFind)
+        {
+            usernames.push(userFind.username)
+            let conversation = new Conversation({
+                id: await global.generateId(Conversation),
+                type: "many_to_many",
+                participants: usernames,
+                updated_at: Date.now(),
+            });
+
+            const conversationSave = await conversation.save(conversation);
+            for(const username of usernames){
+                
+                //const userConnected = await User.findOne({username:username});
+                const socketUserConnected = sockets.find(socket=> {
+                    socket.username === username
+                });
+
+                socketUserConnected.client.emit('@conversationCreated',{
+                    conversation:conversationSave
+                });
+            }
+
+            return callback({code:"SUCCESS", data:{
+                conversation: conversationSave
+            }});
+
+
+        }else{
+            return callback({code:"NOT_AUTHENTICATED", data:{}});
+        }
+    }
+    catch(err){
         console.log(err)
     }
 }
@@ -154,14 +201,13 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
         {
             const conversation = await Conversation.findOne({id:conversation_id});
 
-            let newSeen = conversation.seen
-            newSeen[userFind.username] = {
-                    message_id,
-                    time: new Date()
+            conversation.seen[userFind.username] = {
+                message_id,
+                time: new Date()
             }
-            conversation.set({seen:newSeen});
+            conversation.markModified('seen');
 
-           const conversationSave  =  await conversation.save()
+            const conversationSave  =  await conversation.save()
 
             console.log(conversationSave.seen)
             sockets.forEach((socket)=>{
@@ -176,12 +222,10 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
     }catch (err){
         console.log(err)
     }
-
 }
 
 module.exports = {
-    getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations,
+    getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations, createManyToManyConversation:createManyToManyConversation,
     seeConversation:seeConversation,addParticipants:addParticipants,
     deleteParticipants:deleteParticipants
 };
-
