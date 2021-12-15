@@ -148,7 +148,7 @@ async function postMessage({token, conversation_id, content,sockets,io}, callbac
 
 async function reactMessage({token, conversation_id, message_id, reaction,sockets}, callback)
 {
-    
+
     try{
         let isValid = await userCtr.tokenIsValid(token)
         if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
@@ -157,25 +157,22 @@ async function reactMessage({token, conversation_id, message_id, reaction,socket
         const message = conversationFind.messages.find(_message => _message.id === message_id)
         const messageIndex = conversationFind.messages.findIndex(_message => _message.id === message_id)
 
-        message.reactions[userConnected.username] = {
-            reaction
-        }
+        message.reactions[userConnected.username] = reaction
+
         conversationFind.messages[messageIndex] = message
         conversationFind.markModified('message')
         message.markModified('reactions')
-      
+
         let conversationSave = await conversationFind.save();
         let messageSave = await message.save();
-        console.log(conversationSave)
-        console.log(messageSave)
 
-        await conversationFind.save();
+        console.log(conversationSave.messages.find(_message=>_message.id === 75))
+
         if(sockets.length > 0)
         {
             sockets.forEach((socket)=>{
-                console.log(conversationFind.participants.includes(socket.username))
                 if(conversationFind.participants.includes(socket.username)){
-                    socket.client.emit('@reactMessage',{
+                    socket.client.emit('@messageReacted',{
                         conversation_id,
                         message:messageSave
                     })
@@ -184,9 +181,6 @@ async function reactMessage({token, conversation_id, message_id, reaction,socket
 
             return callback({code:"SUCCESS", data:{}});
         }
-    
-        
-
     }catch (err){
         console.log(err)
     }
