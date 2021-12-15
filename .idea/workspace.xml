@@ -3,10 +3,12 @@
   <component name="ChangeListManager">
     <list default="true" id="23e148de-d6cf-45aa-b459-f699702ce22d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< Updated upstream
       <change beforePath="$PROJECT_DIR$/controllers/ConversationController.js" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/ConversationController.js" afterDir="false" />
+=======
       <change beforePath="$PROJECT_DIR$/controllers/MessageController.js" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/MessageController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controllers/UserController.js" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/UserController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server.js" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,6 +65,8 @@
       <workItem from="1636964631722" duration="1755000" />
       <workItem from="1636966831019" duration="11090000" />
       <workItem from="1637074952984" duration="5735000" />
+      <workItem from="1637257505708" duration="7108000" />
+      <workItem from="1637314507824" duration="1665000" />
     </task>
     <servers />
   </component>

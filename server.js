@@ -31,15 +31,17 @@ io.on("connection", socket => {
     socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets,io}, callback));
     socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
     socket.on("@getConversations", conversationCtr.getConversations);
-
-    socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
     socket.on("@postMessage",({token, conversation_id, content}, callback)=>messageCtr.postMessage({token, conversation_id, content,sockets,io}, callback));
+    socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
 
-    socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@editMessage",messageCtr.updateMessage);
-    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction}) => {callback({code:"SUCCESS", data:{}});});
-    socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,socket,io},callback));
-    socket.on("disconnect", (reason) =>{ });
+    socket.on("@addParticipant", ({token, conversation_id, username}, callback) =>conversationCtr.addParticipants({token, conversation_id, username,sockets}, callback));
+    socket.on("@removeParticipant", ({token, conversation_id, username}, callback) =>conversationCtr.deleteParticipants({token, conversation_id, username,sockets}, callback));
+
+    socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) =>messageCtr.replyMessage({token, conversation_id, message_id, content,sockets}, callback));
+    socket.on("@editMessage",({token, conversation_id, message_id, content}, callback) => messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
+    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@deleteMessage",({token, message_id, conversation_id},callback)=>messageCtr.deleteMessage({token, message_id, conversation_id,sockets,io},callback));
+    socket.on("disconnect", (reason) =>userCtr.disconnect({reason,sockets,io}));
 });
 
 // Addresse du serveur démo: wss://teach-vue-chat-server.glitch.me

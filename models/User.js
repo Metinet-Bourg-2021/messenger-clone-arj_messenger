@@ -19,7 +19,7 @@ const userSchema = mongoose.Schema({
     },
     token:{
         type:String,
-        required:true
+        default:""
     },
     socketID:{
         type:String,

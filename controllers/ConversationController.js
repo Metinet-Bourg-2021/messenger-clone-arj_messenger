@@ -5,13 +5,14 @@ const global = require('./global')
 async function getOrCreateOneToOneConversation({token, username,sockets}, callback)
 {
     try{
-        if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
+
         const userFind = await User.findOne({username:username})
-        const socketUserFind = sockets.filter(socket=>socket.client.id === userFind.socketID)
         if(!userFind) return callback({code:"NOT_VALID_USERNAMES", data:{}});
 
         const userConnected = await User.findOne({token:token})
-        const socketUserConnected = sockets.filter(socket=>socket.client.id === userConnected.socketID)
+        //const socketUserConnected = sockets.filter(socket=>socket.username === userConnected.username)
 
         const conversationFind = await Conversation.findOne({participants:[userConnected.username,userFind.username]})
          if(!conversationFind){
@@ -21,14 +22,20 @@ async function getOrCreateOneToOneConversation({token, username,sockets}, callba
                 participants:[userConnected.username,username],
                 updated_at:Date.now(),
                 seen:{
-                    [userConnected.username]:-1,
-                    [userFind.username]:-1,
+                    [userConnected.username]:{
+                        message_id:-1,
+                        time:-1
+                    },
+                    [userFind.username]:{
+                        message_id:-1,
+                        time:-1
+                    },
                 }
 
             })
             const conversationSave = await conversation.save()
             if(conversationSave){
-                socketUserConnected[0].client.join(conversationSave.id)
+                const socketUserFind = sockets.filter(socket=>socket.username === userFind.username)
                 if(socketUserFind.length > 0) {
                     socketUserFind[0].client.emit('@conversationCreated', {
                         conversation: conversationSave
@@ -41,7 +48,8 @@ async function getOrCreateOneToOneConversation({token, username,sockets}, callba
                 })
             }
         }else{
-            return callback({code:"SUCCESS",
+            // socketUserConnected[0].client.join(conversationFind.id)
+             return callback({code:"SUCCESS",
                 data:{
                     conversation:conversationFind
                 }
@@ -52,11 +60,79 @@ async function getOrCreateOneToOneConversation({token, username,sockets}, callba
     }
 }
 
+async function deleteParticipants({token,conversation_id,username,sockets},callback){
+    try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
+        const userAdd = await User.findOne({username:username})
+        if(!userAdd) return callback({code:"NOT_VALID_USERNAMES", data:{}});
+
+        const conversation = await Conversation.findOne({id:conversation_id})
+        if(conversation){
+            let index = conversation.participants.findIndex(participant => participant === username)
+            conversation.participants.splice(index,1)
+
+            //remove les seen
+            //update le updated_at
+            const conversationSave = await conversation.save()
+            console.log(conversationSave)
+            sockets.forEach(socket=>{
+                if(conversationSave.participants.includes(socket.username)){
+                    socket.client.emit('@participantRemoved', {conversation: conversationSave})
+                }
+            })
+            return callback({code:"SUCCESS",
+                data:{
+                    conversation:conversationSave
+                }
+            })
+        }else{
+            //code erreur
+        }
+    }catch (err) {
+        console.log(err)
+    }
+
+}
+
+async function addParticipants({token,conversation_id,username,sockets},callback){
+    try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
+        const userAdd = await User.findOne({username:username})
+        if(!userAdd) return callback({code:"NOT_VALID_USERNAMES", data:{}});
+
+        const conversation = await Conversation.findOne({id:conversation_id})
+        if(conversation){
+            conversation.participants.push(userAdd.username)
+            //conversation.seen[userAdd.username] = -1
+
+            const conversationSave = await conversation.save()
+            console.log(conversationSave)
+            sockets.forEach(socket=>{
+                if(conversationSave.participants.includes(socket.username)){
+                    socket.client.emit('@participantAdded', {conversation: conversationSave})
+                }
+            })
+            return callback({code:"SUCCESS",
+                data:{
+                    conversation:conversationSave
+                }
+            })
+        }else{
+            //code erreur
+        }
+    }catch (err) {
+        console.log(err)
+    }
+
+}
 
 async function getConversations({token, username}, callback)
 {
-    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
@@ -70,21 +146,31 @@ async function getConversations({token, username}, callback)
     }
 }
 async function seeConversation({token, conversation_id, message_id,sockets,io}, callback){
-    console.log(io.sockets.adapter.rooms)
-    if(!await userCtr.tokenIsValid(token)) return callback({code:"NOT_FOUND_USER", data:{}});
     try{
+        let isValid = await userCtr.tokenIsValid(token)
+        if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userFind = await User.findOne({token:token})
         if(userFind)
         {
             const conversation = await Conversation.findOne({id:conversation_id});
-            conversation.seen = {
-                [userFind.username]:{
+
+            let newSeen = conversation.seen
+            newSeen[userFind.username] = {
                     message_id,
-                    time:new Date()
-                }
+                    time: new Date()
             }
-            io.to("une room").emit('@conversationSeen',{
-                conversation
+            conversation.set({seen:newSeen});
+
+           const conversationSave  =  await conversation.save()
+
+            console.log(conversationSave.seen)
+            sockets.forEach((socket)=>{
+                if(conversation.participants.includes(socket.username)){
+                    console.log('ici')
+                    socket.client.emit('@conversationSeen',{
+                        conversation:conversation
+                    })
+                }
             })
         }
     }catch (err){
@@ -93,5 +179,9 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
 
 }
 
-module.exports = {getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations,seeConversation:seeConversation};
+module.exports = {
+    getOrCreateOneToOneConversation: getOrCreateOneToOneConversation, getConversations:getConversations,
+    seeConversation:seeConversation,addParticipants:addParticipants,
+    deleteParticipants:deleteParticipants
+};
 
