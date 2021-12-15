@@ -178,25 +178,35 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
     }
 }
 
-async function createManyToManyConversation({token, usernames}, callback)
+async function createManyToManyConversation({token, usernames, sockets}, callback)
 {
     try{
         const userFind = await User.findOne({token:token})
+        const socketUserFind = sockets.filter(socket=>socket.client.id === userFind.socketID);
         usernames.push(userFind.username)
         if(userFind)
         {
             let conversation = new Conversation({
-                id: 1,
+                id: await global.generateId(Conversation),
                 type: "many_to_many",
                 participants:usernames,
                 updated_at: Date.now(),
             });
 
-
-
-
             const conversationSave = await conversation.save(conversation);
-            console.log(conversationSave);
+            for(const username of usernames){
+                
+                //const userConnected = await User.findOne({username:username});
+                const socketUserConnected = sockets.filter(socket=>
+                    {
+                        socket.username=== username
+                    });
+
+                socketUserConnected[0].client.join(conversationSave.id)
+                socketUserFind[0].client.emit('@conversationCreated',{
+                    conversation:conversationSave
+                });
+            }
 
             return callback({code:"SUCCESS", data:{
                 conversation: {
