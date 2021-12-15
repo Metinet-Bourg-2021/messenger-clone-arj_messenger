@@ -154,19 +154,16 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
         {
             const conversation = await Conversation.findOne({id:conversation_id});
 
-            let newSeen = conversation.seen
-            newSeen[userFind.username] = {
+            conversation.seen[userFind.username] = {
                     message_id,
                     time: new Date()
             }
-            conversation.set({seen:newSeen});
+            conversation.markModified('seen')
 
            const conversationSave  =  await conversation.save()
 
-            console.log(conversationSave.seen)
             sockets.forEach((socket)=>{
                 if(conversation.participants.includes(socket.username)){
-                    console.log('ici')
                     socket.client.emit('@conversationSeen',{
                         conversation:conversation
                     })
