@@ -36,6 +36,7 @@ io.on("connection", socket => {
 
     socket.on("@addParticipant", ({token, conversation_id, username}, callback) =>conversationCtr.addParticipants({token, conversation_id, username,sockets}, callback));
     socket.on("@removeParticipant", ({token, conversation_id, username}, callback) =>conversationCtr.deleteParticipants({token, conversation_id, username,sockets}, callback));
+    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => messageCtr.reactMessage({token, conversation_id, message_id, reaction,sockets},callback));
 
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) =>messageCtr.replyMessage({token, conversation_id, message_id, content,sockets}, callback));
     socket.on("@editMessage",({token, conversation_id, message_id, content}, callback) => messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
