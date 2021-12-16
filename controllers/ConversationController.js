@@ -84,13 +84,15 @@ async function createManyToManyConversation({token, usernames, sockets}, callbac
             for(const username of usernames){
                 
                 //const userConnected = await User.findOne({username:username});
-                const socketUserConnected = sockets.find(socket=> {
-                    socket.username === username
-                });
+                const socketUserConnected = sockets.find(_socket => 
+                    _socket.username === username
+                );
 
-                socketUserConnected.client.emit('@conversationCreated',{
-                    conversation:conversationSave
-                });
+                if(socketUserConnected !== undefined) {
+                    socketUserConnected.client.emit('@conversationCreated',{
+                        conversation:conversationSave
+                    });
+                }
             }
 
             return callback({code:"SUCCESS", data:{
