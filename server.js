@@ -14,7 +14,7 @@ const io = new Server(server, { cors: { origin: "*" } });
 mongoose.connect(process.env.BDD,{ useNewUrlParser: true,useUnifiedTopology: true })
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch((err) => console.log(err)
-    );
+);
 app.get("/", (req, res) => {
     res.send("A utiliser pour du debug si vous avez besoin...");
 });
@@ -28,14 +28,15 @@ io.on("connection", socket => {
     //Remplacer les callbacks par des fonctions dans d'autres fichiers.
     socket.on("@authenticate", ({username, password}, callback)=>userCtr.authenticate({username, password,socket,sockets},callback));
     socket.on("@getUsers",({token},callback)=>userCtr.getUsers({token,sockets,io},callback));
-    socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets,io}, callback));
-    socket.on("@createManyToManyConversation", ({token, usernames}, callback) => {callback({code:"SUCCESS", data:{}});});
+    socket.on("@getOrCreateOneToOneConversation",({token, username}, callback) => conversationCtr.getOrCreateOneToOneConversation({token, username,sockets}, callback));
+    socket.on("@createManyToManyConversation", ({token, usernames}, callback) => conversationCtr.createManyToManyConversation({token, usernames,sockets}, callback));
     socket.on("@getConversations", conversationCtr.getConversations);
     socket.on("@postMessage",({token, conversation_id, content}, callback)=>messageCtr.postMessage({token, conversation_id, content,sockets,io}, callback));
     socket.on("@seeConversation", ({token, conversation_id, message_id}, callback) => conversationCtr.seeConversation({token, conversation_id, message_id,sockets,io}, callback));
 
     socket.on("@addParticipant", ({token, conversation_id, username}, callback) =>conversationCtr.addParticipants({token, conversation_id, username,sockets}, callback));
     socket.on("@removeParticipant", ({token, conversation_id, username}, callback) =>conversationCtr.deleteParticipants({token, conversation_id, username,sockets}, callback));
+    socket.on("@reactMessage", ({token, conversation_id, message_id, reaction},callback) => messageCtr.reactMessage({token, conversation_id, message_id, reaction,sockets},callback));
 
     socket.on("@replyMessage", ({token, conversation_id, message_id, content}, callback) =>messageCtr.replyMessage({token, conversation_id, message_id, content,sockets}, callback));
     socket.on("@editMessage",({token, conversation_id, message_id, content}, callback) => messageCtr.updateMessage({token, conversation_id, message_id, content,sockets}, callback));
