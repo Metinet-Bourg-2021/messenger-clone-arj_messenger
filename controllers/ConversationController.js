@@ -209,10 +209,8 @@ async function seeConversation({token, conversation_id, message_id,sockets,io}, 
 
             const conversationSave  =  await conversation.save()
 
-            console.log(conversationSave.seen)
             sockets.forEach((socket)=>{
                 if(conversation.participants.includes(socket.username)){
-                    console.log('ici')
                     socket.client.emit('@conversationSeen',{
                         conversation:conversation
                     })
