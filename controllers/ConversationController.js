@@ -13,7 +13,6 @@ async function getOrCreateOneToOneConversation({token, username, sockets}, callb
         if(!userFind) return callback({code:"NOT_VALID_USERNAMES", data:{}});
 
         const userConnected = await User.findOne({token:token})
-        //const socketUserConnected = sockets.filter(socket=>socket.username === userConnected.username)
 
         const conversationFind = await Conversation.findOne({participants:[userConnected.username,userFind.username]})
          if(!conversationFind){
@@ -67,8 +66,7 @@ async function createManyToManyConversation({token, usernames, sockets}, callbac
         if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
 
         const userFind = await User.findOne({token:token})
-        //const socketUserFind = sockets.filter(socket=>socket.client.id === userFind.socketID);
-        
+
         if(userFind)
         {
             usernames.push(userFind.username)
@@ -120,10 +118,7 @@ async function deleteParticipants({token,conversation_id,username,sockets},callb
             let index = conversation.participants.findIndex(participant => participant === username)
             conversation.participants.splice(index,1)
 
-            //remove les seen
-            //update le updated_at
             const conversationSave = await conversation.save()
-            console.log(conversationSave)
             sockets.forEach(socket=>{
                 if(conversationSave.participants.includes(socket.username)){
                     socket.client.emit('@participantRemoved', {conversation: conversationSave})
@@ -134,8 +129,6 @@ async function deleteParticipants({token,conversation_id,username,sockets},callb
                     conversation:conversationSave
                 }
             })
-        }else{
-            //code erreur
         }
     }catch (err) {
         console.log(err)
@@ -153,10 +146,8 @@ async function addParticipants({token,conversation_id,username,sockets},callback
         const conversation = await Conversation.findOne({id:conversation_id})
         if(conversation){
             conversation.participants.push(userAdd.username)
-            //conversation.seen[userAdd.username] = -1
 
             const conversationSave = await conversation.save()
-            console.log(conversationSave)
             sockets.forEach(socket=>{
                 if(conversationSave.participants.includes(socket.username)){
                     socket.client.emit('@participantAdded', {conversation: conversationSave})
@@ -167,8 +158,6 @@ async function addParticipants({token,conversation_id,username,sockets},callback
                     conversation:conversationSave
                 }
             })
-        }else{
-            //code erreur
         }
     }catch (err) {
         console.log(err)

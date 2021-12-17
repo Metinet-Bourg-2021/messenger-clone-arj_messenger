@@ -112,14 +112,13 @@ async function postMessage({token, conversation_id, content,sockets,io}, callbac
         if(!isValid) return callback({code:"NOT_FOUND_USER", data:{}});
         const userConnected = await User.findOne({token:token})
         const conversationFind = await  Conversation.findOne({id:conversation_id});
-        const socketUserConnected = sockets.filter((socket)=>socket.username===userConnected.username)
+
         if(conversationFind){
             const message = new Message({
                 id: await global.generateId(Message),
                 from:userConnected.username,
                 content: content,
                 posted_at: Date.now(),
-                //delivered_to:{oui:new Date()}
             })
             conversationFind.updated_at = new Date();
             conversationFind.messages.push(message);
@@ -163,8 +162,8 @@ async function reactMessage({token, conversation_id, message_id, reaction,socket
         conversationFind.markModified('message')
         message.markModified('reactions')
 
-        let conversationSave = await conversationFind.save();
         let messageSave = await message.save();
+        let conversationSave = await conversationFind.save();
 
 
         if(sockets.length > 0)

@@ -97,28 +97,4 @@ async function tokenIsValid(token) {
     }
 }
 
-async function  fakedata(){
-    const message = new Message({
-        id:await global.generateId(Message),
-        from:"redouane",
-        content:"bonjour !",
-
-    })
-    const conversation = new Conversation({
-        id:await global.generateId(Conversation),
-        type:'one_to_one',
-        participants:['redouane','oui'],
-        updated_at:Date.now(),
-        messages:[message]
-    })
-    try{
-        await message.save()
-        await conversation.save()
-    }catch (err){
-        console.log(err)
-    }
-}
-
-
-
 module.exports = {authenticate: authenticate,getUsers:getUsers,tokenIsValid:tokenIsValid,disconnect:disconnect};
