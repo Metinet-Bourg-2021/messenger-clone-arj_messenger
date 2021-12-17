@@ -128,7 +128,6 @@ async function postMessage({token, conversation_id, content,sockets,io}, callbac
             if(sockets.length > 0)
             {
                 sockets.forEach((socket)=>{
-                    console.log(conversationFind.participants.includes(socket.username))
                     if(conversationFind.participants.includes(socket.username)){
                         socket.client.emit('@messagePosted',{
                             conversation_id,
@@ -167,7 +166,6 @@ async function reactMessage({token, conversation_id, message_id, reaction,socket
         let conversationSave = await conversationFind.save();
         let messageSave = await message.save();
 
-        console.log(conversationSave.messages.find(_message=>_message.id === 75))
 
         if(sockets.length > 0)
         {

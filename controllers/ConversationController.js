@@ -49,7 +49,6 @@ async function getOrCreateOneToOneConversation({token, username, sockets}, callb
                 })
             }
         }else{
-            // socketUserConnected[0].client.join(conversationFind.id)
              return callback({code:"SUCCESS",
                 data:{
                     conversation:conversationFind
